@@ -49,6 +49,12 @@ Finally, install git by typing:
 ```
 $ sudo apt-get install git
 ```
+### Running 
+
+To make this large powerful machine working, write script below in your terminal and open ```http://localhost:8080/```:
+```
+$ node server.js
+```
 
 ## Built With
 
