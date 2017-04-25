@@ -65,7 +65,7 @@
                 event.preventDefault();
             });
             socket.on('chat message', function(msg){
-                var msgLen = msg.length;
+                let msgLen = msg.length;
                 if (msgLen > 0) {
                     $('#messages').append($('<li>').text(msg));
                 }
