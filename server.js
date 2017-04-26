@@ -73,9 +73,9 @@ function saveUserData(username, password, res) {
                 __saveUserData(db, username, password, function () {
                     db.close();
                 });
-                formPassed(res);
+                formPassed(res, "Form is OK!");
             } else {
-                formFailed(res)
+                formFailed(res, "Error!")
             }
         });
     });
@@ -89,12 +89,51 @@ app.post('/', function (req, res) {
     saveUserData(userName, userPassword, res);
 });
 
-function formPassed(res) {
-    res.render('index.ejs', { title: "authorized!!"});
+app.get('/login', function (req, res) {
+    res.render('pageLogin.ejs', { title: "login"});
+});
+
+app.post('/login', function (req, res) {
+    username = req.body.user.username;
+    password = req.body.user.password;
+    auth(username, password, res);
+});
+
+function auth(username, password, res) {
+    mongo.connect(url, function (err, db) {
+        db.collection('userData').find().toArray(function (err, result) {
+            console.log("1");
+            let len = result.length;
+            let logged = false;
+            for (let i = 0; i < len; i++) {
+                console.log("2");
+                if (result[i].username == username) {
+                    console.log("3");
+                    if (result[i].password == password) {
+                        logged = true;
+                    }
+                }
+            }
+            if (logged) {
+                formPassed(res, "Hello, " + username + "!");
+            } else {
+                authFailed(res);
+            }
+        });
+        db.close();
+    });
 }
 
-function formFailed(res) {
-    res.render('errNormalPage.ejs', { title: "error!" } );
+function formPassed(res, feedback) {
+    res.render('index.ejs', { title: feedback });
+}
+
+function formFailed(res, feedback) {
+    res.render('errNormalPage.ejs', { title: feedback } );
+}
+
+function authFailed(res) {
+    res.render('authFailed.ejs', { title: 'invalid data' })
 }
 
 app.get('/', function(req, res) {
@@ -142,14 +181,4 @@ http.listen(port, function () {
 //             next(err)
 //         }
 //     });
-// }
-
-
-// beginning of authentification
-// basic authorization
-// app.use(basicAuth({ authorizer: auth }));
-//
-// function auth(username, password) {
-//     const result = 0;
-//     return result;
 // }
