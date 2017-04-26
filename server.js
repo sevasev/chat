@@ -5,6 +5,7 @@ const io = require('socket.io')(http);
 const mongo = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 const basicAuth = require('express-basic-auth');
+const cookie = require('cookie');
 
 const port = 8080;
 const url = 'mongodb://localhost:27017/chat';
@@ -73,7 +74,7 @@ function saveUserData(username, password, res) {
         __saveUserData(db, username, password, () => {
           db.close();
         });
-        formPassed(res, 'Form is OK!');
+        formPassed(res, username, 'Form is OK!');
       } else {
         formFailed(res, 'Error!');
       }
@@ -114,7 +115,8 @@ function auth(username, password, res) {
         }
       }
       if (logged) {
-        formPassed(res, `Hello, ${username}!`);
+        formPassed(res, username, `Hello, ${username}!`);
+
       } else {
         authFailed(res);
       }
@@ -123,7 +125,11 @@ function auth(username, password, res) {
   });
 }
 
-function formPassed(res, feedback) {
+function formPassed(res, username, feedback) {
+  res.setHeader('Set-Cookie', cookie.serialize('user', username, {
+    httpOnly: false,// true, // tmp 
+    maxAge: 60 * 60 * 24 * 7 // 1 week 
+  }));
   res.render('index.ejs', { title: feedback });
 }
 
@@ -142,9 +148,9 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   getMessages(socket);
 
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-    saveMessages(socket, msg);
+  socket.on('chat message', (data) => {
+    io.emit('chat message', data);
+    saveMessages(socket, data);
   });
 
   socket.on('disconnect', () => {
