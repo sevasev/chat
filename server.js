@@ -22,7 +22,7 @@ function getMessages(socket) {
       if (err) {
         next(err);
       }
-      io.emit('messages', result);
+      socket.emit('messages', result);
       db.close();
     });
   });
