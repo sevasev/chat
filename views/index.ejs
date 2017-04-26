@@ -52,22 +52,31 @@
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
+        $.cookie = {
+          get :function(name) {
+            var matches = document.cookie.match(new RegExp(
+              "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+          }
+        }
         $(function () {
             const socket = io();
             socket.on('messages', function (result) {
                 for (let i = 0; i !== result.length; i++) {
-                    $('#messages').append($('<li>').text(result[i].message));
+                    var m = result[i].message;
+                    $('#messages').append($('<li>').text(m.user + ': ' + m.message));
                 }
             });
             $('form').submit(function(event) {
-                socket.emit('chat message', $('#mes').val());
+                socket.emit('chat message', { user: $.cookie.get('user'), message: $('#mes').val()});
                 $('#mes').val('');
                 event.preventDefault();
             });
             socket.on('chat message', function(msg){
-                let msgLen = msg.length;
+                let msgLen = msg.message.length;
                 if (msgLen > 0) {
-                    $('#messages').append($('<li>').text(msg));
+                    $('#messages').append($('<li>').text(msg.user + ': ' + msg.message));
                 }
             });
         });
